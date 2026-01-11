@@ -13,50 +13,7 @@ $selectList = '`name`';
 $orderColumn = '`name`';
 $whereParts = ['`name` LIKE :term'];
 
-$fallbackNames = [
-    [
-        'name' => 'Emma',
-        'gender' => 'Vrouwelijk',
-        'origin' => 'Germaans',
-        'meaning' => 'Universeel; allesomvattend',
-        'popularity_rank' => 1,
-    ],
-    [
-        'name' => 'Noah',
-        'gender' => 'Mannelijk',
-        'origin' => 'Hebreeuws',
-        'meaning' => 'Rust; troost',
-        'popularity_rank' => 2,
-    ],
-    [
-        'name' => 'Mila',
-        'gender' => 'Vrouwelijk',
-        'origin' => 'Slavisch',
-        'meaning' => 'Lief; genadig',
-        'popularity_rank' => 3,
-    ],
-    [
-        'name' => 'Lucas',
-        'gender' => 'Mannelijk',
-        'origin' => 'Latijns',
-        'meaning' => 'Afkomstig uit Lucanië; licht',
-        'popularity_rank' => 4,
-    ],
-    [
-        'name' => 'Sofie',
-        'gender' => 'Vrouwelijk',
-        'origin' => 'Grieks',
-        'meaning' => 'Wijsheid',
-        'popularity_rank' => 5,
-    ],
-    [
-        'name' => 'Finn',
-        'gender' => 'Mannelijk',
-        'origin' => 'Keltisch',
-        'meaning' => 'Witte krijger',
-        'popularity_rank' => 6,
-    ],
-];
+$fallbackNames = [];
 
 try {
     $pdo = Database::getInstance()->getConnection();
