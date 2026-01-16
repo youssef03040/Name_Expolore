@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/include/functions.php';
-require_once __DIR__ . '/include/db.php';
+require_once dirname(__DIR__) . '/include/functions.php';
+require_once dirname(__DIR__) . '/include/db.php';
 
 $pdo = null;
 $searchTerm = isset($_GET['query']) ? trim($_GET['query']) : '';
@@ -106,14 +106,14 @@ if ($searchTerm !== '') {
     $popularNames = $fallbackNames;
 }
 
-include __DIR__ . '/include/header.php';
+include dirname(__DIR__) . '/include/header.php';
 ?>
 <main>
-    <section class="hero">
+    <section id="hero" class="hero">
         <div class="container">
             <h1>Ontdek de perfecte voornaam</h1>
             <p>Zoek naar betekenissen, herkomst en trends. Vind nieuwe inspiratie en stel een favorietenlijst samen voor jouw gezin.</p>
-            <form class="search-form" method="get" action="#results">
+            <form id="search" class="search-form" method="get" action="#results">
                 <label class="visually-hidden" for="query">Zoek naar een voornaam</label>
                 <div class="search-controls">
                     <input
@@ -239,4 +239,4 @@ include __DIR__ . '/include/header.php';
         </div>
     </section>
 </main>
-<?php include __DIR__ . '/include/footer.php'; ?>
+<?php include dirname(__DIR__) . '/include/footer.php'; ?>
