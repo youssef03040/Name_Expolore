@@ -2,6 +2,10 @@
 require_once dirname(__DIR__) . '/include/functions.php';
 require_once dirname(__DIR__) . '/include/db.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $pdo = null;
 $searchTerm = isset($_GET['query']) ? trim($_GET['query']) : '';
 $searchResults = [];
@@ -14,6 +18,44 @@ $orderColumn = '`name`';
 $whereParts = ['`name` LIKE :term'];
 
 $fallbackNames = [];
+$contactStatus = null;
+$contactToken = isset($_SESSION['contact_token']) ? (string) $_SESSION['contact_token'] : '';
+
+if ($contactToken === '') {
+    $contactToken = bin2hex(random_bytes(16));
+    $_SESSION['contact_token'] = $contactToken;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_action']) && $_POST['contact_action'] === 'submit_contact') {
+    $submittedToken = isset($_POST['contact_token']) ? (string) $_POST['contact_token'] : '';
+    if (!hash_equals($contactToken, $submittedToken)) {
+        $contactStatus = ['type' => 'error', 'message' => 'De formulierbevestiging is ongeldig. Vernieuw de pagina en probeer opnieuw.'];
+    } else {
+        $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+        if ($email === '') {
+            $contactStatus = ['type' => 'error', 'message' => 'Vul een e-mailadres in.'];
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $contactStatus = ['type' => 'error', 'message' => 'Het opgegeven e-mailadres is ongeldig.'];
+        } else {
+            $sanitizedEmail = filter_var($email, FILTER_SANITIZE_EMAIL);
+            $messageBody = "Naamadvies aanvraag van: " . $sanitizedEmail . "\nVerstuurd op: " . date('Y-m-d H:i:s');
+
+            $mailSent = false;
+            if (function_exists('mail')) {
+                $mailSent = @mail('info@example.com', 'Nieuwe naamadvies aanvraag', $messageBody, 'From: noreply@example.com');
+            }
+
+            if ($mailSent) {
+                $contactStatus = ['type' => 'success', 'message' => 'Bedankt! We nemen zo snel mogelijk contact met je op.'];
+            } else {
+                $contactStatus = ['type' => 'success', 'message' => 'Bedankt! Je aanvraag is ontvangen.'];
+            }
+
+            $_SESSION['contact_token'] = bin2hex(random_bytes(16));
+            $contactToken = $_SESSION['contact_token'];
+        }
+    }
+}
 
 try {
     $pdo = Database::getInstance()->getConnection();
@@ -221,7 +263,10 @@ include dirname(__DIR__) . '/include/header.php';
             <div class="contact-card">
                 <h2>Persoonlijk naamadvies</h2>
                 <p>Twijfel je tussen meerdere opties of zoek je een naam met een specifieke betekenis? Laat je e-mailadres achter en ontvang inspiratie op maat.</p>
-                <form class="contact-form" method="post" action="mailto:info@example.com">
+                <?php if ($contactStatus !== null): ?>
+                    <p class="status-message <?php echo $contactStatus['type'] === 'error' ? 'error' : 'success'; ?>"><?php echo e($contactStatus['message']); ?></p>
+                <?php endif; ?>
+                <form class="contact-form" method="post" action="index.php#contact">
                     <label class="visually-hidden" for="contact-email">E-mailadres</label>
                     <div class="contact-controls">
                         <input
@@ -231,7 +276,10 @@ include dirname(__DIR__) . '/include/header.php';
                             name="email"
                             placeholder="naam@voorbeeld.nl"
                             required
+                            value="<?php echo isset($_POST['email']) ? e($_POST['email']) : ''; ?>"
                         >
+                        <input type="hidden" name="contact_action" value="submit_contact">
+                        <input type="hidden" name="contact_token" value="<?php echo e($contactToken); ?>">
                         <button class="contact-button" type="submit">Verstuur</button>
                     </div>
                 </form>
